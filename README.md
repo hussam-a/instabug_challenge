@@ -29,7 +29,7 @@ Namely they are **3 main docker containers**:
 Then to run the application
 
 ```
-$ docker-compose build
+$ docker-compose up -d
 ```
 
 ## Issue
