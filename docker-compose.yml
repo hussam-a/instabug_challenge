@@ -1,0 +1,55 @@
+mysql:
+  image: mysql:5.6.34
+  ports:
+    - "3306:3306"
+  volumes_from:
+    - dbdata
+  environment:
+    - MYSQL_ROOT_PASSWORD=root
+    - MYSQL_DATABASE=dev
+
+elasticsearch:
+  image: docker.elastic.co/elasticsearch/elasticsearch:5.3.0
+  ports:
+    - "9200:9200"
+  environment:
+    - bootstrap.memory_lock=true
+    - xpack.security.enabled=false
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    - "http.host=0.0.0.0"
+    - "transport.host=127.0.0.1"
+  ulimits:
+    memlock:
+      soft: -1
+      hard: -1
+    nofile:
+      soft: 65536
+      hard: 65536
+  mem_limit: 1g
+  cap_add:
+    - IPC_LOCK
+  volumes:
+    - /usr/share/elasticsearch/data
+
+dbdata:
+  image: tianon/true
+  volumes:
+    - /var/lib/mysql
+
+app:
+  build: .
+  environment:
+    RAILS_ENV: development
+    ELASTICSEARCH_URL: http://elasticsearch:9200
+  ports:
+    - "3000:3000"
+  volumes_from:
+    - appdata
+  links:
+    - "mysql"
+    - "elasticsearch"
+
+appdata:
+  image: tianon/true
+  volumes:
+    - ".:/workspace"
