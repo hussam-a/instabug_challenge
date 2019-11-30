@@ -20,4 +20,4 @@ WORKDIR $APP_ROOT
 COPY . $APP_ROOT
 
 EXPOSE  3000
-CMD rm -f tmp/pids/server.pid && rails s -b '0.0.0.0'
+CMD rails db:migrate:reset && rm -f tmp/pids/server.pid && rails s -b '0.0.0.0'

@@ -1,55 +1,72 @@
-mysql:
-  image: mysql:5.6.34
-  ports:
-    - "3306:3306"
-  volumes_from:
-    - dbdata
-  environment:
-    - MYSQL_ROOT_PASSWORD=root
-    - MYSQL_DATABASE=dev
+version: "2.1"
 
-elasticsearch:
-  image: docker.elastic.co/elasticsearch/elasticsearch:5.3.0
-  ports:
-    - "9200:9200"
-  environment:
-    - bootstrap.memory_lock=true
-    - xpack.security.enabled=false
-    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    - "http.host=0.0.0.0"
-    - "transport.host=127.0.0.1"
-  ulimits:
-    memlock:
-      soft: -1
-      hard: -1
-    nofile:
-      soft: 65536
-      hard: 65536
-  mem_limit: 1g
-  cap_add:
-    - IPC_LOCK
-  volumes:
-    - /usr/share/elasticsearch/data
+services:
+  mysql:
+    image: mysql:5.6.34
+    ports:
+      - "3306:3306"
+    volumes_from:
+      - dbdata
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=dev
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
-dbdata:
-  image: tianon/true
-  volumes:
-    - /var/lib/mysql
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.3.0
+    ports:
+      - "9200:9200"
+    environment:
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "http.host=0.0.0.0"
+      - "transport.host=127.0.0.1"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 1g
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - /usr/share/elasticsearch/data
+    healthcheck:
+      test: curl -f http://localhost:9200 || exit 1
+      interval: 2s
+      timeout: 5s
+      retries: 30
 
-app:
-  build: .
-  environment:
-    RAILS_ENV: development
-    ELASTICSEARCH_URL: http://elasticsearch:9200
-  ports:
-    - "3000:3000"
-  volumes_from:
-    - appdata
-  links:
-    - "mysql"
-    - "elasticsearch"
+  dbdata:
+    image: tianon/true
+    volumes:
+      - /var/lib/mysql
 
-appdata:
-  image: tianon/true
-  volumes:
-    - ".:/workspace"
+  app:
+    build: .
+    environment:
+      RAILS_ENV: development
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    ports:
+      - "3000:3000"
+    volumes_from:
+      - appdata
+    links:
+      - "mysql"
+      - "elasticsearch"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      
+  appdata:
+    image: tianon/true
+    volumes:
+      - ".:/workspace"
