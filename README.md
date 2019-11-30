@@ -32,18 +32,6 @@ Then to run the application
 $ docker-compose up -d
 ```
 
-## Issue
-
-I originally executed the following from the Dockerfile
-```
-rails db:migrate:reset
-```
-to create the database, tables, columns, keys, relationships, and indics. But it was problematic, since it interfaces with the ElasticSearch, ElasticSearch needs to online first.
-So I decided to take it out, now we need to wait till http://localhost:9200/ (ElasticSearch) is online then execute in the terminal
-```
-$ docker-compose run app rails db:migrate:reset 
-```
-
 **AND NOW YOU'RE READY!**
 
 ## API Description
