@@ -19,6 +19,10 @@ class AppsController < ApplicationController
     application = App.find_by_token(params[:app_token])
     if application
       if application.destroy
+        keys_to_delete = $redis.keys(pattern = "*"+params[:app_token]+"*")
+        keys_to_delete.each do |key|
+          $redis.del(key)
+        end
         render json: "Successful: Deleted " +  params[:app_token].to_s
       else
         render json: "Unsuccessful: Valid token number but could not Delete"
@@ -29,12 +33,19 @@ class AppsController < ApplicationController
   end
 
   def get_chats_count
+    cached_response = $redis.get("apps_get_chats_count_"+params[:app_token])
+    if !cached_response then
     application = App.find_by_token(params[:app_token])
     if application
-      render json: application.chats_count
+      to_cache = application.chats_count
+      $redis.set("apps_get_chats_count_"+params[:app_token],to_cache)
+      render json: JSON.parse("{ \"chats_count\":"+to_cache.to_s+"}")
     else
       render json: ErrorController.invalid_token(params[:app_token].to_s)
     end
+  else
+    render json: JSON.parse("{ \"chats_count\":"+cached_response.to_s+"}")
+  end
   end
 
   private

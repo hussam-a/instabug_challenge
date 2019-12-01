@@ -1,8 +1,14 @@
 # README
 
 This is a Ruby on Rails app running on Docker using Elastic Search, for a challenge by Instabug.
+(also using an Mysql DB and Redis server for caching purposes)
 
-## Changelog from yesterday's submission
+## Changelog from 29th November submission
+
+* Added use of Redis as a cache to hold recent queries (and appropriately make keys expire) between the Rails app and the Mysql server
+* Updated Readme 
+
+## Changelog from 28th November submission
 
 * Fixed issue with waiting for MySQL and ElasticSearch components to be ready before running the Rails server, now this is automatically done during the docker project starting up, originally it was not.
 * Updated Readme 
@@ -13,6 +19,7 @@ This is a Ruby on Rails app running on Docker using Elastic Search, for a challe
 * Rails 5.2
 * Elasticsearch 5.3
 * Mysql 5.6
+* Redis 4.0
 
 ## Requirements
 
@@ -36,6 +43,7 @@ Namely they are **3 main docker containers**:
 1. The Rails app
 2. The Database app (in form of mysql container)
 3. The ElasticSearch app
+4. The Redis app
 
 *Note: If you are using a fresh docker installation, fetching the resources will download around half a gigabyte (mainly the ElasticSearch and the Rails libraries)*
 *If you alreay have specific versions installed, you can choose to change the versions used. (in the files ```Dockerfile``` and ```Gemfile```)*
@@ -55,11 +63,11 @@ If settings kept as default, rails server will run on http://localhost:3000 and 
 | Action                                                                   | HTTP Verb | Path                                                                        | Parameters                                                                        | Response                                                |
 |--------------------------------------------------------------------------|-----------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------|---------------------------------------------------------|
 | Get a token for a new application                                        | POST      | /applications/create/?name=:name                                            | :name                                                                             | {:token, :name,:created_at}                             |
-| Get number of chats under an application                                 | GET       | /applications/:app_token/chats/count                                        | :app_token                                                                        | :chats_count                                          |
+| Get number of chats under an application                                 | GET       | /applications/:app_token/chats/count                                        | :app_token                                                                        | {:chats_count}                                          |
 | Delete an application by its token                                       | DELETE    | /applications/:app_token/delete                                             | :app_token                                                                        | Status message about action completion/fail             |
 | Create a new chat under an application                                   | POST      | /applications/:app_token/chats/create                                       | :app_token                                                                        | {:chat_number, :created_at}                             |
 | Get list of all chats under an application                               | GET       | /applications/:app_token/chats/get                                          | :app_token                                                                        | [{:chat_number, :created_at}]                           |
-| Get number of messages under an application                              | GET       | /applications/:app_token/chats/:chat_number/messages/count                  | :app_token, :chat_number                                                          | :messages_count                                       |
+| Get number of messages under an application                              | GET       | /applications/:app_token/chats/:chat_number/messages/count                  | :app_token, :chat_number                                                          | {:messages_count}                                       |
 | Delete a specific chat                                                   | DELETE    | /applications/:app_token/chats/:chat_number/delete                          | :app_token, :chat_number                                                          | Status message about action completion/fail             |
 | Create a new message                                                     | POST      | /applications/:app_token/chats/:chat_number/messages/create                 | :app_token, :chat_number, AND :content of message in body of POST                 | {:message_number, :content, :created_at, :updated_at}   |
 | Get all messages under a specific chat                                   | GET       | /applications/:app_token/chats/:chat_number/messages/get                    | :app_token, :chat_number                                                          | [{:message_number, :content, :created_at, :updated_at}] |
@@ -71,7 +79,7 @@ If settings kept as default, rails server will run on http://localhost:3000 and 
 
 ## Sample Data
 
-You can use the task ```rails db:seed``` to input the following sample data into the DB. (Do that after you are completely done with starting the server)
+You can run ```docker-compose run app``` with the task ```rails db:seed``` to input the following seed data into the DB. (Do that after you are completely done with starting the server)
 
 **Applications Seed Data Sample**
 

@@ -49,3 +49,6 @@ gem 'hairtrigger'
 
 #elesticsearch gem
 gem 'elasticsearch-model'
+
+#redis gem
+gem 'redis'

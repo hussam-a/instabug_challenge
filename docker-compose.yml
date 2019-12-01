@@ -48,6 +48,19 @@ services:
     volumes:
       - /var/lib/mysql
 
+  redis:
+    image: 'redis:4.0-alpine'
+    command: redis-server --requirepass root
+    volumes:
+      - 'redisdata'
+    ports:
+      - "6379:6379"
+
+  redisdata:
+    image: tianon/true
+    volumes:
+      - ".:/workspace/"
+
   app:
     build: .
     environment:
@@ -60,6 +73,7 @@ services:
     links:
       - "mysql"
       - "elasticsearch"
+      - "redis"
     depends_on:
       mysql:
         condition: service_healthy

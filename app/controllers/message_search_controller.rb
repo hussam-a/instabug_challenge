@@ -2,6 +2,8 @@ require 'json'
 class MessageSearchController < ApplicationController
 
   def search
+    cached_response = $redis.get("search_"+params[:app_token]+"_"+params[:chat_number]+"_"+params[:query])
+    if !cached_response 
       if params[:query]  
             application = App.find_by_token(params[:app_token])
             if application
@@ -16,7 +18,9 @@ class MessageSearchController < ApplicationController
                   return_results["results"] << {:message_number => message_number, :content => content}   
                   end
                 end
-                render json: return_results
+                to_cache = return_results
+                $redis.set("search_"+params[:app_token]+"_"+params[:chat_number]+"_"+params[:query],to_cache)
+                render json: to_cache
               else
                 render json: ErrorController.invalid_chat_number(params[:chat_number].to_s)
               end
@@ -26,5 +30,8 @@ class MessageSearchController < ApplicationController
       else
         render json: "Unsuccessful: Invalid query parameter"
       end
+    else
+      render json: cached_response 
+    end
   end
 end    

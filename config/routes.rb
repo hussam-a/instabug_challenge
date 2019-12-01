@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
+  #get '/endpoint_1/', to: 'test#function1'
+
   post '/applications/create', to: 'apps#get_token'
   get '/applications/:app_token/chats/count', to: 'apps#get_chats_count'
   delete '/applications/:app_token/delete', to: 'apps#delete_app'
