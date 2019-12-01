@@ -38,7 +38,7 @@ $ docker-compose build
 
 This builds the docker containers needed.
 
-Namely they are **3 main docker containers**:
+Namely they are **4 main docker containers**:
 
 1. The Rails app
 2. The Database app (in form of mysql container)
